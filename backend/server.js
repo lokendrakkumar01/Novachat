@@ -48,6 +48,9 @@ const initializeSocket = require("./socket/socketService");
 const app = express();
 const server = http.createServer(app);
 
+// Enable trust proxy for production behind Render/Vercel reverse proxies
+app.set("trust proxy", 1);
+
 // ============================================================
 // Connect to MongoDB Atlas
 // ============================================================
