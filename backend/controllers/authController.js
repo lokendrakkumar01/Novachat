@@ -51,13 +51,11 @@ const register = async (req, res, next) => {
       emailOTPExpiry: otpExpiry,
     });
 
-    // Send verification email
-    try {
-      await sendEmailOTP(email, otp, displayName || username);
-    } catch (emailError) {
-      console.error("Email send error:", emailError.message);
-      // Don't fail registration if email fails
-    }
+    // Send verification email asynchronously (non-blocking) to prevent frontend timeouts
+    console.log(`[AUTH] Registering user ${email}. Generated OTP is: ${otp}`);
+    sendEmailOTP(email, otp, displayName || username).catch((emailError) => {
+      console.error("[AUTH] Async email send error:", emailError.message);
+    });
 
     res.status(201).json({
       success: true,
