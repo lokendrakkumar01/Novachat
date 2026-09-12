@@ -54,6 +54,9 @@ export default function RegisterPage() {
     }
 
     const { confirmPassword, ...submitData } = form;
+    if (!submitData.phone || !submitData.phone.trim()) {
+      delete submitData.phone;
+    }
     const result = await dispatch(registerUser(submitData));
     if (registerUser.fulfilled.match(result)) {
       toast.success("Account created! Check your email for OTP ✉️");

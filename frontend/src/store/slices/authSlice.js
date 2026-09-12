@@ -4,6 +4,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { authAPI } from "../../services/api";
 
+const getErrorMessage = (err, fallback) => {
+  if (err.response?.data?.message) return err.response.data.message;
+  if (err.message === "Network Error") return "Server is waking up or unreachable. Please try again in a few seconds.";
+  if (err.code === "ECONNABORTED") return "Request timed out. Please try again.";
+  return err.message || fallback;
+};
+
 // Async thunks
 export const loginUser = createAsyncThunk("auth/login", async (credentials, { rejectWithValue }) => {
   try {
@@ -11,7 +18,7 @@ export const loginUser = createAsyncThunk("auth/login", async (credentials, { re
     localStorage.setItem("accessToken", data.accessToken);
     return data;
   } catch (err) {
-    return rejectWithValue(err.response?.data?.message || "Login failed");
+    return rejectWithValue(getErrorMessage(err, "Login failed"));
   }
 });
 
@@ -20,7 +27,7 @@ export const registerUser = createAsyncThunk("auth/register", async (userData, {
     const { data } = await authAPI.register(userData);
     return data;
   } catch (err) {
-    return rejectWithValue(err.response?.data?.message || "Registration failed");
+    return rejectWithValue(getErrorMessage(err, "Registration failed"));
   }
 });
 
@@ -30,7 +37,7 @@ export const verifyEmailOTP = createAsyncThunk("auth/verifyEmail", async (data, 
     localStorage.setItem("accessToken", res.data.accessToken);
     return res.data;
   } catch (err) {
-    return rejectWithValue(err.response?.data?.message || "Verification failed");
+    return rejectWithValue(getErrorMessage(err, "Verification failed"));
   }
 });
 
@@ -39,7 +46,7 @@ export const fetchCurrentUser = createAsyncThunk("auth/fetchMe", async (_, { rej
     const { data } = await authAPI.me();
     return data.user;
   } catch (err) {
-    return rejectWithValue(err.response?.data?.message || "Failed to fetch user");
+    return rejectWithValue(getErrorMessage(err, "Failed to fetch user"));
   }
 });
 

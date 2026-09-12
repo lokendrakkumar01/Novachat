@@ -30,16 +30,21 @@ const register = async (req, res, next) => {
 
     const cleanEmail = email.toLowerCase().trim();
     const cleanUsername = username.trim();
+    const cleanPhone = phone && phone.trim() !== "" ? phone.trim() : undefined;
 
     // Check if user exists
-    const existingUser = await User.findOne({
-      $or: [{ email: cleanEmail }, { username: cleanUsername }, ...(phone ? [{ phone }] : [])],
-    });
+    const query = [
+      { email: cleanEmail },
+      { username: cleanUsername },
+    ];
+    if (cleanPhone) query.push({ phone: cleanPhone });
+
+    const existingUser = await User.findOne({ $or: query });
 
     if (existingUser) {
       let field = "Email";
-      if (existingUser.username === username) field = "Username";
-      if (phone && existingUser.phone === phone) field = "Phone number";
+      if (existingUser.username === cleanUsername) field = "Username";
+      if (cleanPhone && existingUser.phone === cleanPhone) field = "Phone number";
       return res.status(409).json({ success: false, message: `${field} already registered` });
     }
 
@@ -47,16 +52,18 @@ const register = async (req, res, next) => {
     const otp = generateOTP();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Create user (not yet verified)
-    const user = await User.create({
-      username,
-      email,
+    const userData = {
+      username: cleanUsername,
+      email: cleanEmail,
       password,
-      displayName: displayName || username,
-      phone,
+      displayName: displayName?.trim() || cleanUsername,
       emailOTP: otp,
       emailOTPExpiry: otpExpiry,
-    });
+    };
+    if (cleanPhone) userData.phone = cleanPhone;
+
+    // Create user (not yet verified)
+    const user = await User.create(userData);
 
     // Send verification email asynchronously (non-blocking) to prevent frontend timeouts
     console.log(`[AUTH] Registering user ${email}. Generated OTP is: ${otp}`);
