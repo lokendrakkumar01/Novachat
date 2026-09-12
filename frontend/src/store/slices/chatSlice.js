@@ -50,7 +50,7 @@ const chatSlice = createSlice({
     activeGroup: null,
     messages: {}, // keyed by conversationId or groupId
     typingUsers: {}, // keyed by conversationId/groupId -> Set of userIds
-    onlineUsers: new Set(),
+    onlineUsers: {}, // keyed by userId -> true/false (plain object, serializable)
     unreadCounts: {},
     searchResults: [],
     isLoading: false,
@@ -120,6 +120,8 @@ const chatSlice = createSlice({
     },
     setUserOnline: (state, action) => {
       const { userId, isOnline, lastSeen } = action.payload;
+      // Track in fast-lookup map
+      state.onlineUsers[userId] = isOnline;
       // Update in conversations
       state.conversations.forEach((conv) => {
         conv.participants?.forEach((p) => {

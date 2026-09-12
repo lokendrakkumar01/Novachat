@@ -24,7 +24,7 @@ const sendPrivateMessage = async (req, res, next) => {
     if (!conversation) {
       return res.status(404).json({ success: false, message: "Conversation not found" });
     }
-    if (!conversation.participants.includes(senderId.toString())) {
+    if (!conversation.participants.some((p) => p.toString() === senderId.toString())) {
       return res.status(403).json({ success: false, message: "Not a participant of this conversation" });
     }
 
@@ -134,7 +134,7 @@ const getPrivateMessages = async (req, res, next) => {
 
     const conversation = await Conversation.findById(conversationId);
     if (!conversation) return res.status(404).json({ success: false, message: "Conversation not found" });
-    if (!conversation.participants.includes(userId.toString())) {
+    if (!conversation.participants.some((p) => p.toString() === userId.toString())) {
       return res.status(403).json({ success: false, message: "Not a participant" });
     }
 

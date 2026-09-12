@@ -19,7 +19,7 @@ const getOrCreateConversation = async (req, res, next) => {
     if (!targetUser) return res.status(404).json({ success: false, message: "User not found" });
 
     // Check if blocked
-    if (req.user.blockedUsers.includes(targetUserId)) {
+    if (req.user.blockedUsers.some((id) => id.toString() === targetUserId)) {
       return res.status(403).json({ success: false, message: "You have blocked this user" });
     }
 

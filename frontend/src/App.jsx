@@ -12,6 +12,7 @@ import {
 } from "./store/slices/chatSlice";
 import { notificationActions } from "./store/slices/notificationSlice";
 import { callActions } from "./store/slices/callSlice";
+import { uiActions } from "./store/slices/uiSlice";
 
 // Lazy load pages
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -68,10 +69,15 @@ function App() {
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
 
-  // Fetch current user on app load
+  // Fetch current user on app load & track window resize for responsive layout
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (token) dispatch(fetchCurrentUser());
+    dispatch(fetchCurrentUser());
+
+    const handleResize = () => {
+      dispatch(uiActions.setMobileView(window.innerWidth < 768));
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [dispatch]);
 
   // Initialize socket when authenticated

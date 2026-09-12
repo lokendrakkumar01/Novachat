@@ -24,9 +24,16 @@ const register = async (req, res, next) => {
   try {
     const { username, email, password, displayName, phone } = req.body;
 
+    if (!username || !email || !password) {
+      return res.status(400).json({ success: false, message: "Please provide username, email, and password" });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanUsername = username.trim();
+
     // Check if user exists
     const existingUser = await User.findOne({
-      $or: [{ email }, { username }, ...(phone ? [{ phone }] : [])],
+      $or: [{ email: cleanEmail }, { username: cleanUsername }, ...(phone ? [{ phone }] : [])],
     });
 
     if (existingUser) {
@@ -172,9 +179,15 @@ const login = async (req, res, next) => {
   try {
     const { identifier, password } = req.body; // identifier = email or username
 
+    if (!identifier || !password) {
+      return res.status(400).json({ success: false, message: "Please provide email/username and password" });
+    }
+
+    const cleanIdentifier = identifier.trim();
+
     // Find user by email or username
     const user = await User.findOne({
-      $or: [{ email: identifier.toLowerCase() }, { username: identifier }],
+      $or: [{ email: cleanIdentifier.toLowerCase() }, { username: cleanIdentifier }],
     }).select("+password +refreshToken");
 
     if (!user) {
@@ -311,7 +324,11 @@ const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Please provide an email address" });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
     if (!user) {
       // Don't reveal if email exists
       return res.json({ success: true, message: "If this email exists, a reset link has been sent." });

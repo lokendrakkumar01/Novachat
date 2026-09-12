@@ -40,13 +40,13 @@ const getUserProfile = async (req, res, next) => {
 
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-    const isBlocked = currentUser.blockedUsers.includes(user._id.toString())
-      || user.blockedUsers.includes(currentUser._id.toString());
+    const isBlocked = currentUser.blockedUsers.some((id) => id.toString() === user._id.toString())
+      || user.blockedUsers.some((id) => id.toString() === currentUser._id.toString());
 
     const profile = user.getPublicProfile();
 
     // Apply privacy settings
-    if (user.privacy.lastSeen === "nobody" || (user.privacy.lastSeen === "contacts" && !user.contacts.includes(currentUser._id))) {
+    if (user.privacy.lastSeen === "nobody" || (user.privacy.lastSeen === "contacts" && !user.contacts.some((c) => c.toString() === currentUser._id.toString()))) {
       profile.lastSeen = null;
       profile.isOnline = false;
     }
