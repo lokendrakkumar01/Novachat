@@ -81,8 +81,5 @@ conversationSchema.index({ participants: 1 });
 conversationSchema.index({ updatedAt: -1 });
 conversationSchema.index({ "lastMessage": 1 });
 
-// Ensure unique conversation between 2 users
-conversationSchema.index({ participants: 1 }, { unique: false });
-
 const Conversation = mongoose.model("Conversation", conversationSchema);
 module.exports = Conversation;

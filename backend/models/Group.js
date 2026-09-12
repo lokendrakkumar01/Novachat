@@ -91,7 +91,6 @@ const groupSchema = new mongoose.Schema(
 // Indexes
 groupSchema.index({ "members.user": 1 });
 groupSchema.index({ createdBy: 1 });
-groupSchema.index({ inviteLink: 1 });
 groupSchema.index({ name: "text", description: "text" });
 
 // Virtual: member count

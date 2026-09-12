@@ -108,7 +108,6 @@ const storySchema = new mongoose.Schema(
 );
 
 storySchema.index({ author: 1, createdAt: -1 });
-storySchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 storySchema.virtual("viewCount").get(function () {
   return this.views ? this.views.length : 0;

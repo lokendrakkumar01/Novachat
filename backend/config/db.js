@@ -4,6 +4,11 @@
 const mongoose = require("mongoose");
 
 const connectDB = async () => {
+  if (!process.env.MONGODB_URI) {
+    console.error("❌ MONGODB_URI is not set in environment variables!");
+    return;
+  }
+
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       serverSelectionTimeoutMS: 10000,
@@ -13,23 +18,24 @@ const connectDB = async () => {
     });
 
     console.log(`✅ MongoDB Atlas Connected: ${conn.connection.host}`);
-
-    // Handle connection events
-    mongoose.connection.on("error", (err) => {
-      console.error("❌ MongoDB connection error:", err);
-    });
-
-    mongoose.connection.on("disconnected", () => {
-      console.warn("⚠️  MongoDB disconnected. Attempting to reconnect...");
-    });
-
-    mongoose.connection.on("reconnected", () => {
-      console.log("✅ MongoDB reconnected");
-    });
   } catch (error) {
     console.error("❌ MongoDB connection failed:", error.message);
-    process.exit(1);
+    console.warn("⚠️ Database connection failed. Retrying in 10 seconds...");
+    setTimeout(connectDB, 10000);
   }
 };
+
+// Handle connection lifecycle events
+mongoose.connection.on("error", (err) => {
+  console.error("❌ MongoDB connection error:", err.message);
+});
+
+mongoose.connection.on("disconnected", () => {
+  console.warn("⚠️  MongoDB disconnected. Attempting to reconnect...");
+});
+
+mongoose.connection.on("reconnected", () => {
+  console.log("✅ MongoDB reconnected");
+});
 
 module.exports = connectDB;

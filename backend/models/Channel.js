@@ -80,7 +80,6 @@ const channelSchema = new mongoose.Schema(
   { timestamps: true, toJSON: { virtuals: true } }
 );
 
-channelSchema.index({ handle: 1 });
 channelSchema.index({ "subscribers.user": 1 });
 channelSchema.index({ isPublic: 1 });
 channelSchema.index({ name: "text", description: "text" });
