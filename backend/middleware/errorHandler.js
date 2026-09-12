@@ -25,6 +25,12 @@ const errorHandler = (err, req, res, next) => {
     message = `Invalid ${err.path}: ${err.value}`;
   }
 
+  // Mongoose buffering / connection error
+  if (err.name === "MongooseError" && err.message?.includes("buffering timed out")) {
+    statusCode = 503;
+    message = "Database connection offline or IP not whitelisted in MongoDB Atlas.";
+  }
+
   // JWT errors
   if (err.name === "JsonWebTokenError") {
     statusCode = 401;

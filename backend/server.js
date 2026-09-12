@@ -185,6 +185,18 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(mongoSanitize()); // Prevent NoSQL injection
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// Database readiness middleware
+app.use("/api", (req, res, next) => {
+  if (req.path === "/health") return next();
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      success: false,
+      message: "Database is connecting or offline. Please ensure 0.0.0.0/0 IP is whitelisted in MongoDB Atlas.",
+    });
+  }
+  next();
+});
+
 // ============================================================
 // API Routes
 // ============================================================
