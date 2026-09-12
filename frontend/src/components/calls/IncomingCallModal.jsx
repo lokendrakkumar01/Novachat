@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // NovaChat - Incoming Call Modal
 // ============================================================
 import React from "react";
@@ -14,7 +14,9 @@ export default function IncomingCallModal() {
 
   if (!incomingCall) return null;
 
-  const { callId, callerId, type, callerName, callerAvatar } = incomingCall;
+  const { callId, callerId, type, callerName, callerAvatar, user } = incomingCall;
+  const displayName = callerName || user?.displayName || user?.username || "NovaChat Call";
+  const avatarUrl = callerAvatar || user?.avatar?.url;
 
   const handleAccept = () => {
     acceptCall({ callId });
@@ -37,11 +39,15 @@ export default function IncomingCallModal() {
     >
       {/* Caller info */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-12 h-12 rounded-full bg-nova-gradient flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-          {callerName?.charAt(0) || "?"}
+        <div className="w-12 h-12 rounded-full bg-nova-gradient flex items-center justify-center text-white font-bold text-lg flex-shrink-0 overflow-hidden shadow-nova">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+          ) : (
+            displayName.charAt(0).toUpperCase()
+          )}
         </div>
         <div>
-          <p className="text-white font-semibold">{callerName || "Unknown"}</p>
+          <p className="text-white font-semibold">{displayName}</p>
           <p className="text-slate-400 text-sm flex items-center gap-1.5">
             {type === "video" ? <FiVideo size={13} /> : <FiPhone size={13} />}
             Incoming {type === "video" ? "video" : "voice"} call

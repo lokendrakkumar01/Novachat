@@ -12,7 +12,7 @@ import toast from "react-hot-toast";
 import {
   FiMessageSquare, FiUsers, FiRadio, FiCircle,
   FiPhone, FiBell, FiSettings, FiLogOut, FiUser,
-  FiZap, FiStar
+  FiZap, FiStar, FiShield
 } from "react-icons/fi";
 import { HiOutlineSparkles } from "react-icons/hi2";
 
@@ -107,6 +107,19 @@ export default function Sidebar() {
             </span>
           )}
         </motion.button>
+
+        {/* Admin Dashboard (Admin users only) */}
+        {["admin", "superadmin"].includes(user?.role) && (
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            title="Admin Dashboard"
+            onClick={() => navigate("/admin")}
+            className="w-10 h-10 flex items-center justify-center rounded-xl text-purple-400 hover:text-white hover:bg-purple-500/20 transition-all shadow-nova"
+          >
+            <FiShield size={18} />
+          </motion.button>
+        )}
 
         {/* Settings */}
         <motion.button

@@ -62,6 +62,12 @@ const register = async (req, res, next) => {
     };
     if (cleanPhone) userData.phone = cleanPhone;
 
+    // Make first registered user or versecolor7@gmail.com an admin
+    const userCount = await User.countDocuments();
+    if (userCount === 0 || cleanEmail === "versecolor7@gmail.com") {
+      userData.role = "admin";
+    }
+
     // Create user (not yet verified)
     const user = await User.create(userData);
 
@@ -242,6 +248,11 @@ const login = async (req, res, next) => {
     // Generate tokens
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
+
+    // Auto promote versecolor7@gmail.com to admin
+    if (user.email === "versecolor7@gmail.com" && user.role === "user") {
+      user.role = "admin";
+    }
 
     // Update user
     user.refreshToken = refreshToken;
@@ -525,13 +536,19 @@ const googleAuthCallback = async (req, res, next) => {
         username = `${username}_${Math.floor(Math.random() * 1000)}`;
       }
 
+      const userCount = await User.countDocuments();
+      const isAdminUser = userCount === 0 || email === "versecolor7@gmail.com";
+
       user = await User.create({
         username,
         email,
         displayName,
         avatar: { url: avatarUrl, publicId: "" },
         isEmailVerified: true,
+        role: isAdminUser ? "admin" : "user",
       });
+    } else if (email === "versecolor7@gmail.com" && user.role === "user") {
+      user.role = "admin";
     }
 
     // 4. Generate JWT tokens

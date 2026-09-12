@@ -11,7 +11,7 @@
     "lint": "eslint src --ext js,jsx"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^2.0.1",
+    "@reduxjs/toolkit": "^2.12.0",
     "axios": "^1.6.2",
     "date-fns": "^2.30.0",
     "emoji-picker-react": "^4.6.4",
@@ -20,7 +20,7 @@
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
     "react-icons": "^4.12.0",
-    "react-redux": "^9.0.4",
+    "react-redux": "^9.3.0",
     "react-router-dom": "^6.21.1",
     "socket.io-client": "^4.6.1",
     "wavesurfer.js": "^7.6.0"

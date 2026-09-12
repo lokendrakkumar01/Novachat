@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // NovaChat - Call Modal (Active Call UI)
 // ============================================================
 import React, { useEffect, useState, useRef } from "react";
@@ -19,6 +19,21 @@ export default function CallModal() {
   const { user } = useSelector((state) => state.auth);
   const [duration, setDuration] = useState(0);
   const timerRef = useRef(null);
+
+  // Extract caller info from activeCall object
+  const callerName =
+    activeCall?.displayName ||
+    activeCall?.username ||
+    activeCall?.user?.displayName ||
+    activeCall?.recipient?.displayName ||
+    activeCall?.participants?.find((p) => p._id !== user?._id)?.displayName ||
+    "NovaChat Call";
+
+  const callerAvatar =
+    activeCall?.avatar?.url ||
+    activeCall?.user?.avatar?.url ||
+    activeCall?.recipient?.avatar?.url ||
+    activeCall?.participants?.find((p) => p._id !== user?._id)?.avatar?.url;
 
   // Start timer when call is ongoing
   useEffect(() => {
@@ -49,14 +64,18 @@ export default function CallModal() {
       <div className="relative w-full max-w-md bg-[#1a1a2e] rounded-3xl shadow-2xl overflow-hidden border border-white/10">
         {/* Header */}
         <div className="p-6 text-center">
-          <div className="w-20 h-20 rounded-full bg-nova-gradient mx-auto mb-4 flex items-center justify-center text-white text-3xl font-bold">
-            {activeCall?.displayName?.charAt(0) || "?"}
+          <div className="w-20 h-20 rounded-full bg-nova-gradient mx-auto mb-4 flex items-center justify-center text-white text-3xl font-bold overflow-hidden shadow-nova">
+            {callerAvatar ? (
+              <img src={callerAvatar} alt={callerName} className="w-full h-full object-cover" />
+            ) : (
+              callerName.charAt(0).toUpperCase()
+            )}
           </div>
           <h2 className="text-xl font-bold text-white">
-            {activeCall?.displayName || "Unknown"}
+            {callerName}
           </h2>
           <p className="text-slate-400 text-sm mt-1 capitalize">
-            {callStatus === "ongoing" ? formatDuration(duration) : callStatus}
+            {callStatus === "ongoing" ? formatDuration(duration) : callStatus === "idle" ? "Connecting..." : callStatus}
           </p>
         </div>
 

@@ -63,6 +63,17 @@ export default function SettingsPage() {
     if (user?.phone) setPhone(user.phone);
   }, [user]);
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#0f0f1a] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-nova-500/30 border-t-nova-500 rounded-full animate-spin" />
+          <p className="text-slate-400 text-sm">Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Load blocked users
   useEffect(() => {
     if (activeSection === "privacy_security") {
