@@ -31,7 +31,13 @@ export default function LoginPage() {
       toast.success("Welcome back! 🚀");
       navigate("/");
     } else {
-      toast.error(result.payload || "Login failed");
+      const payload = result.payload;
+      if (typeof payload === "object" && payload?.requiresVerification) {
+        toast.error(payload.message || "Email not verified. Redirecting to OTP...");
+        navigate("/verify-email", { state: { userId: payload.userId, email: form.identifier } });
+      } else {
+        toast.error(typeof payload === "string" ? payload : "Login failed");
+      }
     }
   };
 

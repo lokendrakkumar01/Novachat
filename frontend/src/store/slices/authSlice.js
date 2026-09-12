@@ -18,6 +18,9 @@ export const loginUser = createAsyncThunk("auth/login", async (credentials, { re
     localStorage.setItem("accessToken", data.accessToken);
     return data;
   } catch (err) {
+    if (err.response?.data?.requiresVerification) {
+      return rejectWithValue(err.response.data);
+    }
     return rejectWithValue(getErrorMessage(err, "Login failed"));
   }
 });
