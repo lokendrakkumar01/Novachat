@@ -5,6 +5,7 @@ import React, { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { fetchCurrentUser } from "../store/slices/authSlice";
+import api from "../services/api";
 import toast from "react-hot-toast";
 
 export default function GoogleSuccess() {
@@ -16,6 +17,7 @@ export default function GoogleSuccess() {
     const token = params.get("token");
     if (token) {
       localStorage.setItem("accessToken", token);
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       dispatch(fetchCurrentUser()).then((res) => {
         if (fetchCurrentUser.fulfilled.match(res)) {
           toast.success("Signed in with Google! 🚀");

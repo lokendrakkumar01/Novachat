@@ -476,20 +476,32 @@ const getMe = async (req, res, next) => {
 const googleAuthCallback = async (req, res, next) => {
   try {
     const { code } = req.query;
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
+
     if (!code) {
-      return res.redirect(`${process.env.CLIENT_URL}/login?error=no_code`);
+      return res.redirect(`${clientUrl}/login?error=no_code`);
     }
 
     const axios = require("axios");
 
-    // 1. Exchange authorization code for access token
-    const tokenResponse = await axios.post("https://oauth2.googleapis.com/token", {
-      code,
-      client_id: process.env.GOOGLE_CLIENT_ID,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET,
-      redirect_uri: process.env.GOOGLE_CALLBACK_URL,
-      grant_type: "authorization_code",
-    });
+    const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
+    const redirectUri = process.env.GOOGLE_CALLBACK_URL?.trim();
+
+    // 1. Exchange authorization code for access token using standard x-www-form-urlencoded format
+    const tokenResponse = await axios.post(
+      "https://oauth2.googleapis.com/token",
+      new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: "authorization_code",
+      }).toString(),
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
+    );
 
     const { access_token } = tokenResponse.data;
 
@@ -507,7 +519,6 @@ const googleAuthCallback = async (req, res, next) => {
     let user = await User.findOne({ email });
 
     if (!user) {
-      // Generate a unique username
       let username = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "");
       const usernameExists = await User.findOne({ username });
       if (usernameExists) {
@@ -533,10 +544,14 @@ const googleAuthCallback = async (req, res, next) => {
     setTokenCookies(res, accessToken, refreshToken);
 
     // 5. Redirect to frontend success page
-    res.redirect(`${process.env.CLIENT_URL}/auth/google/success?token=${accessToken}`);
+    res.redirect(`${clientUrl}/auth/google/success?token=${accessToken}`);
   } catch (error) {
     console.error("Google auth callback error:", error.message);
-    res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
+    if (error.response) {
+      console.error("Google token exchange error details:", error.response.data);
+    }
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
+    res.redirect(`${clientUrl}/login?error=oauth_failed`);
   }
 };
 
