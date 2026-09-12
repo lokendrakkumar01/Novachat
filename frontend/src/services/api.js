@@ -48,7 +48,15 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const isAuthRoute =
+      originalRequest.url?.includes("/auth/login") ||
+      originalRequest.url?.includes("/auth/register") ||
+      originalRequest.url?.includes("/auth/refresh-token") ||
+      originalRequest.url?.includes("/auth/verify-email") ||
+      originalRequest.url?.includes("/auth/forgot-password") ||
+      originalRequest.url?.includes("/auth/reset-password");
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -73,7 +81,18 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         localStorage.removeItem("accessToken");
-        window.location.href = "/login";
+        // Only redirect if NOT already on a public auth page to prevent infinite reload loops
+        const path = window.location.pathname;
+        const isAuthPage =
+          path.startsWith("/login") ||
+          path.startsWith("/register") ||
+          path.startsWith("/forgot-password") ||
+          path.startsWith("/reset-password") ||
+          path.startsWith("/verify-email");
+
+        if (!isAuthPage) {
+          window.location.href = "/login";
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
