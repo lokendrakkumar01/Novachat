@@ -69,12 +69,9 @@ function App() {
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
 
-  // Fetch current user on app load if token exists & track window resize
+  // Fetch current user on app load & track window resize
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      dispatch(fetchCurrentUser());
-    }
+    dispatch(fetchCurrentUser());
 
     const handleResize = () => {
       dispatch(uiActions.setMobileView(window.innerWidth < 768));

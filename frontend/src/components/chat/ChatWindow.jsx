@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, isToday, isYesterday, isSameDay } from "date-fns";
 import EmojiPicker from "emoji-picker-react";
-import { fetchMessages, addMessage } from "../../store/slices/chatSlice";
+import { fetchMessages, addMessage, setActiveConversation, setActiveGroup } from "../../store/slices/chatSlice";
 import { messageAPI } from "../../services/api";
 import { joinRoom, startTyping, stopTyping, markMessagesRead, sendSocketMessage } from "../../socket/socketClient";
 import toast from "react-hot-toast";
@@ -321,14 +321,18 @@ export default function ChatWindow() {
     try {
       const formData = new FormData();
       formData.append("media", file);
+      let res;
       if (conversationId) {
-        await messageAPI.sendMedia(conversationId, formData);
+        res = await messageAPI.sendMedia(conversationId, formData);
       } else if (groupId) {
-        await messageAPI.sendGroup(groupId, formData);
+        res = await messageAPI.sendGroup(groupId, formData);
+      }
+      if (res?.data?.message) {
+        dispatch(addMessage({ message: res.data.message, conversationId, groupId }));
       }
       toast.success("File sent!");
-    } catch {
-      toast.error("Failed to send file");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to send file");
     } finally {
       setIsUploading(false);
     }
@@ -375,7 +379,10 @@ export default function ChatWindow() {
         {/* Mobile back */}
         {isMobileView && (
           <button
-            onClick={() => dispatch(setActiveConversation(null))}
+            onClick={() => {
+              dispatch(setActiveConversation(null));
+              dispatch(setActiveGroup(null));
+            }}
             className="text-slate-400 hover:text-white mr-1"
           >
             <FiChevronLeft size={22} />

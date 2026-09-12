@@ -49,6 +49,16 @@ export const fetchCurrentUser = createAsyncThunk("auth/fetchMe", async (_, { rej
     const { data } = await authAPI.me();
     return data.user;
   } catch (err) {
+    try {
+      const res = await authAPI.refreshToken();
+      if (res.data?.accessToken) {
+        localStorage.setItem("accessToken", res.data.accessToken);
+        const meRes = await authAPI.me();
+        return meRes.data.user;
+      }
+    } catch (refreshErr) {
+      // both failed
+    }
     return rejectWithValue(getErrorMessage(err, "Failed to fetch user"));
   }
 });
@@ -69,13 +79,13 @@ const authSlice = createSlice({
   initialState: {
     user: null,
     isAuthenticated: false,
-    isLoading: false,
+    isLoading: true,
     error: null,
     registrationData: null, // temp data during OTP verification
   },
   reducers: {
     clearError: (state) => { state.error = null; },
-    setUser: (state, action) => { state.user = action.payload; state.isAuthenticated = !!action.payload; },
+    setUser: (state, action) => { state.user = action.payload; state.isAuthenticated = !!action.payload; state.isLoading = false; },
     setRegistrationData: (state, action) => { state.registrationData = action.payload; },
     updateUser: (state, action) => {
       if (state.user) state.user = { ...state.user, ...action.payload };
@@ -110,10 +120,14 @@ const authSlice = createSlice({
       .addCase(verifyEmailOTP.fulfilled, (state, action) => {
         state.user = action.payload.user;
         state.isAuthenticated = true;
+        state.isLoading = false;
         state.registrationData = null;
       })
 
     // Fetch Me
+      .addCase(fetchCurrentUser.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
         state.user = action.payload;
         state.isAuthenticated = true;
@@ -130,6 +144,7 @@ const authSlice = createSlice({
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.isAuthenticated = false;
+        state.isLoading = false;
       });
   },
 });

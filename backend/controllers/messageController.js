@@ -88,7 +88,15 @@ const sendPrivateMessage = async (req, res, next) => {
     );
 
     if (io) {
+      io.to(`conversation_${conversationId}`).emit("message:receive", {
+        message,
+        conversationId,
+      });
       io.to(`user_${otherParticipant}`).emit("message:receive", {
+        message,
+        conversationId,
+      });
+      io.to(`user_${senderId}`).emit("message:receive", {
         message,
         conversationId,
       });

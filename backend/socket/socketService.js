@@ -215,10 +215,16 @@ const initializeSocket = (io) => {
           status: "initiated",
         });
 
+        // Get caller user profile details
+        const callerUser = await User.findById(userId).select("displayName username avatar");
+
         // Notify callee
         io.to(`user_${calleeId}`).emit("call:incoming", {
           callId: call._id,
           callerId: userId,
+          callerName: callerUser?.displayName || callerUser?.username || "NovaChat Call",
+          callerAvatar: callerUser?.avatar?.url,
+          user: callerUser,
           type,
           conversationId,
         });
