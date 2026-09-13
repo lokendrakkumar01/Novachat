@@ -45,22 +45,35 @@ export const verifyEmailOTP = createAsyncThunk("auth/verifyEmail", async (data, 
 });
 
 export const fetchCurrentUser = createAsyncThunk("auth/fetchMe", async (_, { rejectWithValue }) => {
-  try {
-    const { data } = await authAPI.me();
-    return data.user;
-  } catch (err) {
+  const token = localStorage.getItem("accessToken");
+  if (token) {
     try {
-      const res = await authAPI.refreshToken();
-      if (res.data?.accessToken) {
-        localStorage.setItem("accessToken", res.data.accessToken);
-        const meRes = await authAPI.me();
-        return meRes.data.user;
-      }
-    } catch (refreshErr) {
-      // both failed
+      const { data } = await authAPI.me();
+      return data.user;
+    } catch (err) {
+      try {
+        const res = await authAPI.refreshToken();
+        if (res.data?.accessToken) {
+          localStorage.setItem("accessToken", res.data.accessToken);
+          const meRes = await authAPI.me();
+          return meRes.data.user;
+        }
+      } catch (refreshErr) {}
+      return rejectWithValue(getErrorMessage(err, "Session expired"));
     }
-    return rejectWithValue(getErrorMessage(err, "Failed to fetch user"));
   }
+
+  // If no accessToken stored locally, attempt refreshToken cookie recovery
+  try {
+    const res = await authAPI.refreshToken();
+    if (res.data?.accessToken) {
+      localStorage.setItem("accessToken", res.data.accessToken);
+      const meRes = await authAPI.me();
+      return meRes.data.user;
+    }
+  } catch (refreshErr) {}
+
+  return rejectWithValue("No active session");
 });
 
 export const logoutUser = createAsyncThunk("auth/logout", async (_, { rejectWithValue }) => {
