@@ -13,6 +13,13 @@ import {
 import { notificationActions } from "./store/slices/notificationSlice";
 import { callActions } from "./store/slices/callSlice";
 import { uiActions } from "./store/slices/uiSlice";
+import {
+  playMessageSound,
+  playIncomingRingtone,
+  stopIncomingRingtone,
+  stopOutgoingRing,
+  playCallEnded,
+} from "./utils/soundEffects";
 
 // Lazy load pages
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -87,7 +94,13 @@ function App() {
     const socket = initSocket(user._id);
 
     // Message events
-    socket.on("message:receive", (data) => dispatch(addMessage(data)));
+    socket.on("message:receive", (data) => {
+      dispatch(addMessage(data));
+      const msg = data.message || data;
+      if (msg?.sender?._id !== user._id && msg?.sender !== user._id) {
+        playMessageSound();
+      }
+    });
     socket.on("message:edited", ({ messageId, content, editedAt, conversationId, groupId }) => {
       dispatch(updateMessage({ messageId, conversationId, groupId, updates: { content, isEdited: true, editedAt } }));
     });
@@ -117,10 +130,27 @@ function App() {
     socket.on("notification:new", (notif) => dispatch(notificationActions.addNotification(notif)));
 
     // Call events
-    socket.on("call:incoming", (data) => dispatch(callActions.setIncomingCall(data)));
-    socket.on("call:accepted", () => dispatch(callActions.setCallStatus("ongoing")));
-    socket.on("call:rejected", () => dispatch(callActions.endCall()));
-    socket.on("call:ended", () => dispatch(callActions.endCall()));
+    socket.on("call:incoming", (data) => {
+      dispatch(callActions.setIncomingCall(data));
+      playIncomingRingtone();
+    });
+    socket.on("call:accepted", () => {
+      stopIncomingRingtone();
+      stopOutgoingRing();
+      dispatch(callActions.setCallStatus("ongoing"));
+    });
+    socket.on("call:rejected", () => {
+      stopIncomingRingtone();
+      stopOutgoingRing();
+      playCallEnded();
+      dispatch(callActions.endCall());
+    });
+    socket.on("call:ended", () => {
+      stopIncomingRingtone();
+      stopOutgoingRing();
+      playCallEnded();
+      dispatch(callActions.endCall());
+    });
 
     // Account banned
     socket.on("account:banned", () => {

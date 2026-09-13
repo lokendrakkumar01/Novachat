@@ -10,6 +10,7 @@ import {
 } from "react-icons/fi";
 import { callActions } from "../../store/slices/callSlice";
 import { endCall, getSocket, sendOffer, sendAnswer, sendIceCandidate } from "../../socket/socketClient";
+import { playOutgoingRing, stopOutgoingRing, playCallEnded } from "../../utils/soundEffects";
 
 const ICE_SERVERS = {
   iceServers: [
@@ -177,6 +178,16 @@ export default function CallModal() {
     }
   }, [isVideoOff]);
 
+  // Ringback tone when call is initiating/idle
+  useEffect(() => {
+    if (callStatus === "idle") {
+      playOutgoingRing();
+    } else {
+      stopOutgoingRing();
+    }
+    return () => stopOutgoingRing();
+  }, [callStatus]);
+
   // Timer when call is ongoing
   useEffect(() => {
     if (callStatus === "ongoing") {
@@ -192,6 +203,8 @@ export default function CallModal() {
   };
 
   const handleEndCall = () => {
+    stopOutgoingRing();
+    playCallEnded();
     const callId = activeCall?._id || activeCall?.callId;
     if (callId) endCall({ callId });
     if (localStreamRef.current) {

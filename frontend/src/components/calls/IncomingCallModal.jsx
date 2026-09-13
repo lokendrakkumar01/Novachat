@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { FiPhone, FiPhoneOff, FiVideo } from "react-icons/fi";
 import { callActions } from "../../store/slices/callSlice";
 import { acceptCall, rejectCall } from "../../socket/socketClient";
+import { stopIncomingRingtone, playCallEnded } from "../../utils/soundEffects";
 
 export default function IncomingCallModal() {
   const dispatch = useDispatch();
@@ -19,6 +20,7 @@ export default function IncomingCallModal() {
   const avatarUrl = callerAvatar || user?.avatar?.url;
 
   const handleAccept = () => {
+    stopIncomingRingtone();
     acceptCall({ callId });
     dispatch(callActions.setActiveCall(incomingCall));
     dispatch(callActions.clearIncomingCall());
@@ -26,6 +28,8 @@ export default function IncomingCallModal() {
   };
 
   const handleReject = () => {
+    stopIncomingRingtone();
+    playCallEnded();
     rejectCall({ callId });
     dispatch(callActions.clearIncomingCall());
   };
